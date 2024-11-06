@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import Board from "../components/Board";
-import useSocketClient from "../sockets/useSocketClient";
+import useSocketClient from "../hooks/useSocketClient";
 import { useEffect, useState } from "react";
-import useTimer from "../sockets/useTimer";
+import useTimer from "../hooks/useTimer";
 
 function Play() {
     const navigate = useNavigate();
@@ -12,18 +12,19 @@ function Play() {
     const [turn, setTurn] = useState(-1);
     const [moves, setMoves] = useState<number[]>([]);
     const [winningMoves, setWinningMoves] = useState<number[]>([]);
+
     const {
         time: p1Time,
         start: startP1Timer,
         stop: stopP1Timer,
-        setTime: setP1Timer
-    } = useTimer(600000);
+        set: setP1Timer
+    } = useTimer(0);
     const {
         time: p2Time,
         start: startP2Timer,
         stop: stopP2Timer,
-        setTime: setP2Timer
-    } = useTimer(600000);
+        set: setP2Timer
+    } = useTimer(0);
 
     const [gameOver, setGameOver] = useState(false);
     const [gameOverState, setGameOverState] = useState("");
@@ -31,7 +32,6 @@ function Play() {
 
     const handleMessage = (message: MessageEvent) => {
         const body = JSON.parse(message.data) as { type: string, data: any };
-
         console.log(body);
 
         switch (body.type) {
@@ -61,6 +61,9 @@ function Play() {
 
                     setMoves([...moves]);
 
+                    setP1Timer(initialJoinData.timeControl.player1Time);
+                    setP2Timer(initialJoinData.timeControl.player2Time);
+
                     if (moves.length % 2 === 0 && newMoves.length !== 0) {
                         startP1Timer();
                         stopP2Timer();
@@ -68,14 +71,13 @@ function Play() {
                         startP2Timer();
                         stopP1Timer();
                     }
-
-                    setP1Timer(initialJoinData.timeControl.player1Time);
-                    setP2Timer(initialJoinData.timeControl.player2Time);
                 }
 
                 setPlayer(initialJoinData.player);
                 setOpponent(initialJoinData.opponent);
                 setTurn(initialJoinData.turn);
+                setP1Timer(initialJoinData.timeControl.player1Time);
+                setP2Timer(initialJoinData.timeControl.player2Time);
                 setInitialJoinReceived(true);
                 break;
             case "move":
@@ -113,6 +115,15 @@ function Play() {
                 setGameOverState(gameOverData.reason)
                 setWinner(gameOverData.winner);
                 break;
+            case "timeUpdate":
+                const timeUpdateData = body.data as {
+                    player1Time: number,
+                    player2Time: number
+                }
+
+                setP1Timer(timeUpdateData.player1Time);
+                setP2Timer(timeUpdateData.player2Time);
+                break;
             default:
                 break;
         }
@@ -125,6 +136,12 @@ function Play() {
     };
 
     const { connected, send } = useSocketClient("/play", handleMessage);
+
+    useEffect(() => {
+        if (p1Time < 0 || p2Time < 0) {
+            send({ type: "timeFlag" });
+        }
+    }, [p1Time, p2Time]);
 
     if ((!connected || !initialJoinReceived) && !gameOver) {
         return <div className="w-screen h-screen flex items-center justify-center">
@@ -151,10 +168,10 @@ function Play() {
                     <div className="flex flex-col gap-8 items-center">
                         <div className="flex justify-around w-64">
                             <p className={turn === moves.length % 2 ? "text-primary" : ""}>{player}</p>
-                            <span>{turn === 0 ? (p1Time > 10000 ? Math.floor(p1Time / 1000) : p1Time) : (p2Time > 10000 ? Math.floor(p2Time / 1000) : p2Time)}</span>
+                            <span>{turn === 0 ? (p1Time > 10000 ? Math.floor(p1Time / 1000) : p1Time / 1000) : (p2Time > 10000 ? Math.floor(p2Time / 1000) : p2Time / 1000)}</span>
                             vs
                             <p className={turn !== moves.length % 2 ? "text-primary" : ""}>{opponent}</p>
-                            <span>{turn === 1 ? (p1Time > 10000 ? Math.floor(p1Time / 1000) : p1Time) : (p2Time > 10000 ? Math.floor(p2Time / 1000) : p2Time)}</span>
+                            <span>{turn === 1 ? (p1Time > 10000 ? Math.floor(p1Time / 1000) : p1Time / 1000) : (p2Time > 10000 ? Math.floor(p2Time / 1000) : p2Time / 1000)}</span>
                         </div>
                         <Board moves={moves} onCellClick={(n: number) => {
                             send({

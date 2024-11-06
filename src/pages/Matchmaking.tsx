@@ -1,5 +1,5 @@
 import { useState } from "react";
-import useSocketClient from "../sockets/useSocketClient";
+import useSocketClient from "../hooks/useSocketClient";
 import { useNavigate } from "react-router-dom";
 
 function Matchmaking() {

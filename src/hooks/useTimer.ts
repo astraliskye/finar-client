@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 function useTimer(initialTime: number) {
     const [time, setTime] = useState<number>(initialTime);
+    const [referenceInstant, setReferenceInstant] = useState<number>(Date.now());
+    const [timerTotal, setTimerTotal] = useState<number>(initialTime);
     const [isRunning, setIsRunning] = useState(false);
 
     useEffect(() => {
@@ -10,16 +12,16 @@ function useTimer(initialTime: number) {
         if (isRunning) {
             if (time > 10000) {
                 intervalId = setInterval(() => {
-                    setTime(prevTime => prevTime - 1000);
+                    setTime(timerTotal - (Date.now() - referenceInstant));
 
                     if (time < 0) {
                         setTime(0);
                         setIsRunning(false);
                     }
-                }, 1000);
+                }, 400);
             } else {
                 intervalId = setInterval(() => {
-                    setTime(prevTime => prevTime - 10);
+                    setTime(timerTotal - (Date.now() - referenceInstant));
 
                     if (time < 0) {
                         setTime(0);
@@ -34,8 +36,13 @@ function useTimer(initialTime: number) {
 
     const start = () => setIsRunning(true);
     const stop = () => setIsRunning(false);
+    const set = (time: number) => {
+        setTime(time);
+        setTimerTotal(time);
+        setReferenceInstant(Date.now());
+    }
 
-    return {start, stop, setTime, isRunning, time};
+    return {start, stop, set, isRunning, time};
 }
 
 export default useTimer;
