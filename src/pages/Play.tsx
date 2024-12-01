@@ -12,6 +12,7 @@ function Play() {
     const [turn, setTurn] = useState(-1);
     const [moves, setMoves] = useState<number[]>([]);
     const [winningMoves, setWinningMoves] = useState<number[]>([]);
+    const [gameId, setGameId] = useState(0);
 
     const {
         time: p1Time,
@@ -42,6 +43,7 @@ function Play() {
                 break;
             case "initialJoin":
                 const initialJoinData = body.data as {
+                    gameId: BigInt,
                     player: string,
                     opponent: string,
                     turn: number,
@@ -51,6 +53,8 @@ function Play() {
                         player2Time: number
                     }
                 };
+
+                setGameId(initialJoinData.gameId);
 
                 if (initialJoinData.moves !== "") {
                     const newMoves = initialJoinData.moves.split(",").map(n => Number.parseInt(n));
@@ -139,7 +143,7 @@ function Play() {
 
     useEffect(() => {
         if (p1Time < 0 || p2Time < 0) {
-            send({ type: "timeFlag" });
+            send({ gameId, type: "timeFlag" });
         }
     }, [p1Time, p2Time]);
 
@@ -164,7 +168,7 @@ function Play() {
                     </div>
                 }
                 <div className="py-4 flex flex-col items-center gap-16">
-                    <button onClick={() => { send({ type: "quit" }) }}>Quit Game</button>
+                    <button onClick={() => { send({ gameId, type: "quit" }) }}>Quit Game</button>
                     <div className="flex flex-col gap-8 items-center">
                         <div className="flex justify-around w-64">
                             <p className={turn === moves.length % 2 ? "text-primary" : ""}>{player}</p>
@@ -175,6 +179,7 @@ function Play() {
                         </div>
                         <Board moves={moves} onCellClick={(n: number) => {
                             send({
+                                gameId,
                                 type: "move",
                                 data: n
                             })

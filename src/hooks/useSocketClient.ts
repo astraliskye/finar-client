@@ -59,6 +59,7 @@ export default function useSocketClient(endpoint: string,
         connected,
         send: (data: any) => {
             if (clientRef.current !== null) {
+                console.log("Sending data: ", data);
                 clientRef.current.send(JSON.stringify(data));
             }
         },
