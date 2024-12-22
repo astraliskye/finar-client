@@ -37,12 +37,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: production-files
-          path: .
+          path: ./dist
       - name: Deploy to server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          source: 'dist/*'
+          source: 'dist/dist/*'
           target: '/var/www/html/finar'
