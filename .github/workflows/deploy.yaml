@@ -43,7 +43,7 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSOWRD }}
+          password: ${{ secrets.PASSWORD }}
           script: 'rm -rf /var/www/html/finar'
       - name: Rename dist
         run: mv dist finar
