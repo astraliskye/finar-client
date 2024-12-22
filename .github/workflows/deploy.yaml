@@ -38,11 +38,13 @@ jobs:
         with:
           name: production-files
           path: ./dist
+      - name: Rename dist
+        run: mv dist finar
       - name: Deploy to server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          source: 'dist/dist/*'
-          target: '/var/www/html/finar'
+          source: 'dist/*'
+          target: '/var/www/html'
