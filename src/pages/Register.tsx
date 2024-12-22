@@ -25,12 +25,9 @@ function Register() {
                 body: JSON.stringify(data)
             });
 
-            const body = await response.json();
-
-
             switch (response.status) {
             case 201:
-                return body;
+                return;
             case 401:
                 throw new Error("Invalid form input.");
             case 500:

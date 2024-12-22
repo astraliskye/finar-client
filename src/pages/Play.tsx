@@ -11,7 +11,6 @@ function Play() {
     const [opponent, setOpponent] = useState("");
     const [turn, setTurn] = useState(-1);
     const [moves, setMoves] = useState<number[]>([]);
-    const [winningMoves, setWinningMoves] = useState<number[]>([]);
     const [gameId, setGameId] = useState(0);
 
     const {
@@ -43,7 +42,7 @@ function Play() {
                 break;
             case "initialJoin":
                 const initialJoinData = body.data as {
-                    gameId: BigInt,
+                    gameId: number,
                     player: string,
                     opponent: string,
                     turn: number,
@@ -116,8 +115,10 @@ function Play() {
                 };
 
                 setGameOver(true);
-                setGameOverState(gameOverData.reason)
+                setGameOverState(gameOverData.reason.toLowerCase())
                 setWinner(gameOverData.winner);
+                stopP1Timer();
+                stopP2Timer();
                 break;
             case "timeUpdate":
                 const timeUpdateData = body.data as {
@@ -139,13 +140,19 @@ function Play() {
         }
     };
 
-    const { connected, send } = useSocketClient("/play", handleMessage);
+    const { connected, send, error: websocketError } = useSocketClient("/play", handleMessage);
 
     useEffect(() => {
         if (p1Time < 0 || p2Time < 0) {
             send({ gameId, type: "timeFlag" });
         }
     }, [p1Time, p2Time]);
+
+    useEffect(() => {
+        if (websocketError) {
+            navigate("/");
+        }
+    }, [websocketError]);
 
     if ((!connected || !initialJoinReceived) && !gameOver) {
         return <div className="w-screen h-screen flex items-center justify-center">

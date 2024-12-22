@@ -9,10 +9,20 @@ function Matchmaking() {
     const { connected, send } = useSocketClient("/matchmaking", (message: MessageEvent) => {
         const body = JSON.parse(message.data) as { type: string, data: any };
 
-        if (body.type === "join") {
-            navigate(`/play`);
-        } else if (body.type === "ack") {
-            setSearching(true);
+        switch (body.type) {
+            case "join":
+                navigate("/play");
+                break;
+            case "redirect":
+                if (body.data === "play") {
+                    navigate("/play");
+                }
+                break;
+            case "ack":
+                setSearching(true);
+                break;
+            default:
+                break;
         }
     });
 

@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const websocketUrl = import.meta.env.PROD
+    ? "wss://skyegibney.com"
+    : ""
+
 export default function useSocketClient(endpoint: string,
     messageCallback: (message: MessageEvent) => void) {
     const [connected, setConnected] = useState<boolean>(false);
+    const [error, setError] = useState<boolean>(false);
     const clientRef = useRef<WebSocket | null>(null);
     const navigate = useNavigate();
 
@@ -11,7 +16,7 @@ export default function useSocketClient(endpoint: string,
         if (clientRef.current === null) {
             let intervalId = -1;
 
-            clientRef.current = new WebSocket(`/api${endpoint}`);
+            clientRef.current = new WebSocket(`${websocketUrl}/api${endpoint}`);
 
             clientRef.current.onopen = () => {
                 console.log("socket open");
@@ -34,6 +39,7 @@ export default function useSocketClient(endpoint: string,
             clientRef.current.onerror = (event: Event) => {
                 console.error("socket error: ", event.type);
                 console.error(event);
+                setError(true);
             };
 
             clientRef.current.onmessage = messageCallback;
@@ -63,5 +69,6 @@ export default function useSocketClient(endpoint: string,
                 clientRef.current.send(JSON.stringify(data));
             }
         },
+        error
     }
 }
