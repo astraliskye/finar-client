@@ -39,10 +39,7 @@ jobs:
           name: production-files
           path: ./dist
       - name: Clear destination files
-        run: |
-          mkdir ~/.ssh
-          echo ${{ secrets.KEY }} > ~/.ssh/private.key
-          ssh -i ~/.ssh/private.key ${{secrets.USERNAME}}@${{secrets.HOST}} 'rm -rf /var/www/html/finar'
+        run: mkdir ~/.ssh; echo ${{ secrets.KEY }} > ~/.ssh/private.key; ssh -i ~/.ssh/private.key ${{secrets.USERNAME}}@${{secrets.HOST}} 'rm -rf /var/www/html/finar'
       - name: Rename dist
         run: mv dist finar
       - name: Deploy to server
