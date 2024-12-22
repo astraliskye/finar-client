@@ -92,7 +92,7 @@ function Home() {
                 }
             </header>
             <main className="w-screen h-screen flex flex-col items-center justify-center">
-                <h1 className="text-4xl mb-12">Finar</h1>
+                <h1 className="text-4xl mb-12">finar</h1>
                 <div className="flex flex-col items-center gap-2">
                     <a href="/play/online" className="select-none px-2 py-1 bg-primary text-black rounded-md">Play Online</a>
                     <a href="/play/ai" className="underline">Play vs Computer</a>
