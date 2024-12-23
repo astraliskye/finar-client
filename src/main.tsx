@@ -20,7 +20,7 @@ const router = createBrowserRouter([
         element: <Matchmaking />
     },
     {
-        path: "/play",
+        path: "/game/:id",
         element: <Play />
     },
     {

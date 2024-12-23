@@ -10,8 +10,10 @@ function Matchmaking() {
         const body = JSON.parse(message.data) as { type: string, data: any };
 
         switch (body.type) {
-            case "join":
-                navigate("/play");
+            case "matchFound":
+                const gameId = body.data as number;
+
+                navigate(`/game/${gameId}`);
                 break;
             case "redirect":
                 if (body.data === "play") {
