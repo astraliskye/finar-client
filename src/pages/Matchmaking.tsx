@@ -15,11 +15,6 @@ function Matchmaking() {
 
                 navigate(`/game/${gameId}`);
                 break;
-            case "redirect":
-                if (body.data === "play") {
-                    navigate("/play");
-                }
-                break;
             case "ack":
                 setSearching(true);
                 break;
