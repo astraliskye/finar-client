@@ -102,9 +102,9 @@ function Lobby() {
 
     return <div className="h-screen">
         <h1 className="text-center m-16 text-2xl">{owner}'s lobby</h1>
-        <div className="flex gap-6 justify-center h-2/3 px-8">
-            <div className="w-3/12 flex flex-col bg-stone-900 rounded-lg p-6 h-full justify-between">
-                <div className="flex flex-col justify-between h-full">
+        <div className="flex md:flex-row gap-6 md:justify-center md:h-2/3 md:px-8 px-4 flex-col">
+            <div className="md:w-3/12 flex flex-col bg-stone-900 rounded-lg p-6 h-full justify-between">
+                <div className="flex flex-col justify-between gap-8 h-full">
                     <PlayerList players={players} />
                     <div className="flex flex-col gap-2">
                         <button className="w-full py-2 rounded-md bg-lime-500 text-black hover:bg-lime-400 active:bg-lime-600 transition"
