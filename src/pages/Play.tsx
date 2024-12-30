@@ -36,9 +36,8 @@ function Play() {
 
         switch (body.type) {
             case "redirect":
-                if (body.data === "home") {
-                    navigate("/");
-                }
+                const dest = body.data as string;
+                navigate(dest);
                 break;
             case "initialJoin":
                 const initialJoinData = body.data as {
@@ -114,11 +113,14 @@ function Play() {
                     winner: string,
                 };
 
-                setGameOver(true);
                 setGameOverState(gameOverData.reason.toLowerCase())
                 setWinner(gameOverData.winner);
                 stopP1Timer();
                 stopP2Timer();
+
+                setTimeout(() => {
+                    setGameOver(true);
+                }, 1000);
                 break;
             case "timeUpdate":
                 const timeUpdateData = body.data as {
@@ -132,15 +134,9 @@ function Play() {
             default:
                 break;
         }
-
-        if (body.type === "redirect") {
-            if (body.data === "home") {
-                navigate("/");
-            }
-        }
     };
 
-    const { connected, send, error: websocketError } = useSocketClient("/play", handleMessage);
+    const { connected, send, error } = useSocketClient("/ws", handleMessage);
 
     useEffect(() => {
         if (p1Time < 0 || p2Time < 0) {
@@ -149,10 +145,10 @@ function Play() {
     }, [p1Time, p2Time]);
 
     useEffect(() => {
-        if (websocketError) {
-            navigate("/");
+        if (connected) {
+            send({ type: "joinGame" });
         }
-    }, [websocketError]);
+    }, [connected]);
 
     if ((!connected || !initialJoinReceived) && !gameOver) {
         return <div className="w-screen h-screen flex items-center justify-center">
@@ -162,27 +158,30 @@ function Play() {
         return (
             <>
                 {gameOver &&
-                    <div className="w-full h-64 flex flex-col items-center justify-center gap-8">
-                        <div className="flex flex-col items-center">
-                            <h2 className="text-2xl">Game Over</h2>
-                            {(gameOverState === "abandon" || gameOverState === "finar" || gameOverState === "timeout") && <p><span className="text-primary px-1">{winner}</span> wins by <span className="text-primary px-1">{gameOverState}</span></p>}
-                            {(gameOverState === "draw" || gameOverState === "abort") && <p>Game ended in a <span className="text-primary px-1">{gameOverState}</span></p>}
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <Link to="/play/online" className="underline">Play Again</Link>
-                            <Link to="/" className="underline">Go to Main Menu</Link>
+                    <div className="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-50 z-10 flex items-center justify-center">
+                        <div className="w-64 h-64 flex flex-col items-center justify-center gap-8 bg-stone-900 rounded-xl">
+                            <div className="flex flex-col items-center">
+                                <h2 className="text-2xl">Game Over</h2>
+                                {(gameOverState === "abandon" || gameOverState === "finar" || gameOverState === "timeout") && <p><span className="text-primary px-1">{winner}</span> wins by <span className="text-primary px-1">{gameOverState}</span></p>}
+                                {(gameOverState === "draw" || gameOverState === "abort") && <p>Game ended in a <span className="text-primary px-1">{gameOverState}</span></p>}
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <Link to="/" className="underline">Go to Main Menu</Link>
+                            </div>
                         </div>
                     </div>
                 }
                 <div className="py-4 flex flex-col items-center gap-16">
-                    <button onClick={() => { send({ gameId, type: "quit" }) }}>Quit Game</button>
+                    <button onClick={() => { send({ gameId, type: "quit" }) }}>
+                        {moves.length < 2 ? "Abort" : "Abandon"}
+                    </button>
                     <div className="flex flex-col gap-8 items-center">
                         <div className="flex justify-around w-64">
                             <p className={turn === moves.length % 2 ? "text-primary" : ""}>{player}</p>
-                            <span>{turn === 0 ? (p1Time > 10000 ? Math.floor(p1Time / 1000) : p1Time / 1000) : (p2Time > 10000 ? Math.floor(p2Time / 1000) : p2Time / 1000)}</span>
+                            <span>{turn === 0 ? (p1Time > 10000 ? Math.floor(p1Time / 1000) : (p1Time / 1000).toFixed(1)) : (p2Time > 10000 ? Math.floor(p2Time / 1000) : (p2Time / 1000).toFixed(1))}</span>
                             vs
                             <p className={turn !== moves.length % 2 ? "text-primary" : ""}>{opponent}</p>
-                            <span>{turn === 1 ? (p1Time > 10000 ? Math.floor(p1Time / 1000) : p1Time / 1000) : (p2Time > 10000 ? Math.floor(p2Time / 1000) : p2Time / 1000)}</span>
+                            <span>{turn === 1 ? (p1Time > 10000 ? Math.floor(p1Time / 1000) : (p1Time / 1000).toFixed(1)) : (p2Time > 10000 ? Math.floor(p2Time / 1000) : (p2Time / 1000).toFixed(1))}</span>
                         </div>
                         <Board moves={moves} onCellClick={(n: number) => {
                             send({
