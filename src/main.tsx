@@ -6,9 +6,8 @@ import Home from './pages/Home.tsx'
 import Login from './pages/Login.tsx'
 import Register from './pages/Register.tsx'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import Settings from './pages/Settings.tsx'
-import Matchmaking from './pages/Matchmaking.tsx'
 import Play from './pages/Play.tsx'
+import Lobby from './matchmaking/Lobby.tsx'
 
 const router = createBrowserRouter([
     {
@@ -16,20 +15,12 @@ const router = createBrowserRouter([
         element: <Home />
     },
     {
-        path: "/play/online",
-        element: <Matchmaking />
-    },
-    {
         path: "/game/:id",
         element: <Play />
     },
     {
-        path: "/play/ai",
-        element: <></>
-    },
-    {
-        path: "/settings",
-        element: <Settings />
+        path: "/lobby/:id",
+        element: <Lobby />
     },
     {
         path: "/login",
