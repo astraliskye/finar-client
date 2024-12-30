@@ -12,7 +12,7 @@ function Chat({ messages, sendChatMessage }: ChatProps) {
     const [inputMessage, setInputMessage] = useState("");
 
     return <div className="p-6 bg-stone-900 flex-grow rounded-lg flex flex-col h-full gap-10">
-        <div className="flex-grow bg-stone-800 rounded-lg overflow-hidden flex flex-col justify-end min-h-24">
+        <div className="md:h-full flex-grow bg-stone-800 rounded-lg overflow-hidden flex flex-col justify-end h-48">
             {messages.map((message, i) => (
                 <p key={i} className={`${i % 2 == 0 ? "bg-stone-700" : "bg-stone-800"} px-4 py-2`}>
                     <span className="text-stone-400 text-sm mr-2">{message.username}</span> {message.content}
