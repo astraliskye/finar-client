@@ -136,7 +136,7 @@ function Play() {
         }
     };
 
-    const { connected, send, error } = useSocketClient("/ws", handleMessage);
+    const { connected, send } = useSocketClient("/ws", handleMessage);
 
     useEffect(() => {
         if (p1Time < 0 || p2Time < 0) {
