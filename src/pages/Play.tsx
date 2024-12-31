@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import Board from "../components/Board";
-import useSocketClient from "../hooks/useSocketClient";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import useTimer from "../hooks/useTimer";
+import { WebSocketContext } from "../hooks/WebSocketContext";
 
 function Play() {
     const navigate = useNavigate();
@@ -12,6 +12,7 @@ function Play() {
     const [turn, setTurn] = useState(-1);
     const [moves, setMoves] = useState<number[]>([]);
     const [gameId, setGameId] = useState(0);
+    const { send, setMessageCallback, connected } = useContext(WebSocketContext);
 
     const {
         time: p1Time,
@@ -30,113 +31,116 @@ function Play() {
     const [gameOverState, setGameOverState] = useState("");
     const [winner, setWinner] = useState("");
 
-    const handleMessage = (message: MessageEvent) => {
-        const body = JSON.parse(message.data) as { type: string, data: any };
-        console.log(body);
+    useEffect(() => {
+        setMessageCallback(
+            (message: MessageEvent) => {
+                const body = JSON.parse(message.data) as { type: string, data: any };
+                console.log(body);
 
-        switch (body.type) {
-            case "redirect":
-                const dest = body.data as string;
-                navigate(dest);
-                break;
-            case "initialJoin":
-                const initialJoinData = body.data as {
-                    gameId: number,
-                    player: string,
-                    opponent: string,
-                    turn: number,
-                    moves: string,
-                    timeControl: {
-                        player1Time: number,
-                        player2Time: number
-                    }
-                };
+                switch (body.type) {
+                    case "redirect":
+                        const dest = body.data as string;
+                        navigate(dest);
+                        break;
+                    case "initialJoin":
+                        const initialJoinData = body.data as {
+                            gameId: number,
+                            player: string,
+                            opponent: string,
+                            turn: number,
+                            moves: string,
+                            timeControl: {
+                                player1Time: number,
+                                player2Time: number
+                            }
+                        };
 
-                setGameId(initialJoinData.gameId);
+                        setGameId(initialJoinData.gameId);
 
-                if (initialJoinData.moves !== "") {
-                    const newMoves = initialJoinData.moves.split(",").map(n => Number.parseInt(n));
+                        if (initialJoinData.moves !== "") {
+                            const newMoves = initialJoinData.moves.split(",").map(n => Number.parseInt(n));
 
-                    for (let i = 0; i < newMoves.length; i++) {
-                        moves.push(newMoves[i]);
-                    }
+                            for (let i = 0; i < newMoves.length; i++) {
+                                moves.push(newMoves[i]);
+                            }
 
-                    setMoves([...moves]);
+                            setMoves([...moves]);
 
-                    setP1Timer(initialJoinData.timeControl.player1Time);
-                    setP2Timer(initialJoinData.timeControl.player2Time);
+                            setP1Timer(initialJoinData.timeControl.player1Time);
+                            setP2Timer(initialJoinData.timeControl.player2Time);
 
-                    if (moves.length % 2 === 0 && newMoves.length !== 0) {
-                        startP1Timer();
-                        stopP2Timer();
-                    } else if (moves.length % 2 === 1 && newMoves.length > 1) {
-                        startP2Timer();
+                            if (moves.length % 2 === 0 && newMoves.length !== 0) {
+                                startP1Timer();
+                                stopP2Timer();
+                            } else if (moves.length % 2 === 1 && newMoves.length > 1) {
+                                startP2Timer();
+                                stopP1Timer();
+                            }
+                        }
+
+                        setPlayer(initialJoinData.player);
+                        setOpponent(initialJoinData.opponent);
+                        setTurn(initialJoinData.turn);
+                        setP1Timer(initialJoinData.timeControl.player1Time);
+                        setP2Timer(initialJoinData.timeControl.player2Time);
+                        setInitialJoinReceived(true);
+                        break;
+                    case "move":
+                        const moveData = body.data as {
+                            player: string,
+                            n: number,
+                            timeControl: {
+                                player1Time: number,
+                                player2Time: number
+                            }
+                        };
+
+                        moves.push(moveData.n);
+
+                        if (moves.length % 2 === 0 && moves.length !== 0) {
+                            startP1Timer();
+                            stopP2Timer();
+                        } else if (moves.length % 2 === 1 && moves.length > 1) {
+                            startP2Timer();
+                            stopP1Timer();
+                        }
+
+                        setP1Timer(moveData.timeControl.player1Time);
+                        setP2Timer(moveData.timeControl.player2Time);
+
+                        setMoves([...moves]);
+                        break;
+                    case "gameOver":
+                        const gameOverData = body.data as {
+                            reason: string,
+                            winner: string,
+                        };
+
+                        setGameOverState(gameOverData.reason.toLowerCase())
+                        setWinner(gameOverData.winner);
                         stopP1Timer();
-                    }
+                        stopP2Timer();
+
+                        setTimeout(() => {
+                            setGameOver(true);
+                        }, 1000);
+                        break;
+                    case "timeUpdate":
+                        const timeUpdateData = body.data as {
+                            player1Time: number,
+                            player2Time: number
+                        }
+
+                        setP1Timer(timeUpdateData.player1Time);
+                        setP2Timer(timeUpdateData.player2Time);
+                        break;
+                    default:
+                        break;
                 }
+            }
+        );
+    }, [connected]);
 
-                setPlayer(initialJoinData.player);
-                setOpponent(initialJoinData.opponent);
-                setTurn(initialJoinData.turn);
-                setP1Timer(initialJoinData.timeControl.player1Time);
-                setP2Timer(initialJoinData.timeControl.player2Time);
-                setInitialJoinReceived(true);
-                break;
-            case "move":
-                const moveData = body.data as {
-                    player: string,
-                    n: number,
-                    timeControl: {
-                        player1Time: number,
-                        player2Time: number
-                    }
-                };
-
-                moves.push(moveData.n);
-
-                if (moves.length % 2 === 0 && moves.length !== 0) {
-                    startP1Timer();
-                    stopP2Timer();
-                } else if (moves.length % 2 === 1 && moves.length > 1) {
-                    startP2Timer();
-                    stopP1Timer();
-                }
-
-                setP1Timer(moveData.timeControl.player1Time);
-                setP2Timer(moveData.timeControl.player2Time);
-
-                setMoves([...moves]);
-                break;
-            case "gameOver":
-                const gameOverData = body.data as {
-                    reason: string,
-                    winner: string,
-                };
-
-                setGameOverState(gameOverData.reason.toLowerCase())
-                setWinner(gameOverData.winner);
-                stopP1Timer();
-                stopP2Timer();
-
-                setTimeout(() => {
-                    setGameOver(true);
-                }, 1000);
-                break;
-            case "timeUpdate":
-                const timeUpdateData = body.data as {
-                    player1Time: number,
-                    player2Time: number
-                }
-
-                setP1Timer(timeUpdateData.player1Time);
-                setP2Timer(timeUpdateData.player2Time);
-                break;
-            default:
-                break;
-        }
-    };
-
-    const { connected, send } = useSocketClient("/ws", handleMessage);
 
     useEffect(() => {
         if (p1Time < 0 || p2Time < 0) {
@@ -148,9 +152,9 @@ function Play() {
         if (connected) {
             send({ type: "joinGame" });
         }
-    }, [connected]);
+    }, []);
 
-    if ((!connected || !initialJoinReceived) && !gameOver) {
+    if ((/* !connected || */ !initialJoinReceived) && !gameOver) {
         return <div className="w-screen h-screen flex items-center justify-center">
             <svg width="64" height="64" stroke="#fff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g><circle cx="12" cy="12" r="9.5" fill="none" strokeWidth="3" strokeLinecap="round"><animate attributeName="stroke-dasharray" dur="1.5s" calcMode="spline" values="0 150;42 150;42 150;42 150" keyTimes="0;0.475;0.95;1" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" repeatCount="indefinite" /><animate attributeName="stroke-dashoffset" dur="1.5s" calcMode="spline" values="0;-16;-59;-59" keyTimes="0;0.475;0.95;1" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" repeatCount="indefinite" /></circle><animateTransform attributeName="transform" type="rotate" dur="2s" values="0 12 12;360 12 12" repeatCount="indefinite" /></g></svg>
         </div>

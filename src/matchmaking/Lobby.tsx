@@ -1,9 +1,9 @@
 import Chat from "./Chat";
-import useSocketClient from "../hooks/useSocketClient";
 import { useNavigate, useParams } from "react-router-dom";
 import PlayerList from "./PlayerList";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import useAuth from "../hooks/useAuth";
+import { WebSocketContext } from "../hooks/WebSocketContext";
 
 function Lobby() {
     const { id: idString } = useParams();
@@ -20,76 +20,79 @@ function Lobby() {
     const [owner, setOwner] = useState("");
     const navigate = useNavigate();
     const { username } = useAuth();
+    const { send, setMessageCallback, connected } = useContext(WebSocketContext);
 
-    const { connected, send } = useSocketClient("/ws", (messageEvent) => {
-        const message = JSON.parse(messageEvent.data) as { type: string, data: any }
-        console.log(message);
+    useEffect(() => {
+        setMessageCallback((messageEvent) => {
+            const message = JSON.parse(messageEvent.data) as { type: string, data: any }
+            console.log(message);
 
-        switch (message.type) {
-            case "lobbyInfo":
-                const lobbyInfo = message.data as {
-                    id: number,
-                    owner: string,
-                    players: {
+            switch (message.type) {
+                case "lobbyInfo":
+                    const lobbyInfo = message.data as {
+                        id: number,
+                        owner: string,
+                        players: {
+                            username: string,
+                            ready: boolean
+                        }[]
+                    }
+                    setPlayers(_ => lobbyInfo.players.map(p => ({
+                        ...p,
+                        lobbyOwner: p.username === lobbyInfo.owner,
+                    })));
+                    setOwner(lobbyInfo.owner);
+                    break;
+                case "playerJoinedLobby":
+                    const newPlayer = message.data as string;
+
+                    setPlayers(prevPlayers => [
+                        ...prevPlayers,
+                        { username: newPlayer, lobbyOwner: newPlayer === owner, ready: false }
+                    ]);
+                    break;
+                case "playerReadyStatus":
+                    const readyStatus = message.data as {
                         username: string,
                         ready: boolean
-                    }[]
-                }
-                setPlayers(_ => lobbyInfo.players.map(p => ({
-                    ...p,
-                    lobbyOwner: p.username === lobbyInfo.owner,
-                })));
-                setOwner(lobbyInfo.owner);
-                break;
-            case "playerJoinedLobby":
-                const newPlayer = message.data as string;
+                    };
 
-                setPlayers(prevPlayers => [
-                    ...prevPlayers,
-                    { username: newPlayer, lobbyOwner: newPlayer === owner, ready: false }
-                ]);
-                break;
-            case "playerReadyStatus":
-                const readyStatus = message.data as {
-                    username: string,
-                    ready: boolean
-                };
+                    setPlayers(prevPlayers => prevPlayers.map(player => {
+                        if (player.username !== readyStatus.username) {
+                            return player;
+                        } else {
+                            return {
+                                ...player,
+                                ready: readyStatus.ready
+                            };
+                        }
+                    }))
 
-                setPlayers(prevPlayers => prevPlayers.map(player => {
-                    if (player.username !== readyStatus.username) {
-                        return player;
-                    } else {
-                        return {
-                            ...player,
-                            ready: readyStatus.ready
-                        };
-                    }
-                }))
+                    break;
+                case "lobbyChat":
+                    const newMessage = message.data as {
+                        username: string,
+                        content: string
+                    };
 
-                break;
-            case "lobbyChat":
-                const newMessage = message.data as {
-                    username: string,
-                    content: string
-                };
-
-                setMessages(prevMessages => [
-                    ...prevMessages,
-                    newMessage
-                ]);
-                break;
-            case "matchFound":
-                const gameId = message.data as number;
-                navigate(`/game/${gameId}`)
-                break;
-            case "redirect":
-                const dest = message.data as string;
-                navigate(dest);
-                break;
-            default:
-                return;
-        }
-    });
+                    setMessages(prevMessages => [
+                        ...prevMessages,
+                        newMessage
+                    ]);
+                    break;
+                case "matchFound":
+                    const gameId = message.data as number;
+                    navigate(`/game/${gameId}`)
+                    break;
+                case "redirect":
+                    const dest = message.data as string;
+                    navigate(dest);
+                    break;
+                default:
+                    return;
+            }
+        });
+    }, [connected]);
 
     useEffect(() => {
         if (connected) {
