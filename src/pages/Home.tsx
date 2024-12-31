@@ -1,39 +1,42 @@
-import { useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import useSocketClient from "../hooks/useSocketClient";
 import useAuth from "../hooks/useAuth";
+import { WebSocketContext } from "../hooks/WebSocketContext";
 
 function Home() {
     const [searching, setSearching] = useState(false);
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { username, setUsername, loading: authIsLoading } = useAuth();
+    const { send, setMessageCallback } = useContext(WebSocketContext);
 
-    const { send } = useSocketClient("/ws", (message: MessageEvent) => {
-        const body = JSON.parse(message.data) as { type: string, data: any };
+    useEffect(() => {
+        setMessageCallback((message: MessageEvent) => {
+            const body = JSON.parse(message.data) as { type: string, data: any };
 
-        switch (body.type) {
-            case "matchFound":
-                const gameId = body.data as number;
+            switch (body.type) {
+                case "matchFound":
+                    const gameId = body.data as number;
 
-                navigate(`/game/${gameId}`);
-                break;
-            case "ack":
-                const type = body.data as string;
+                    navigate(`/game/${gameId}`);
+                    break;
+                case "ack":
+                    const type = body.data as string;
 
-                switch (type) {
-                    case "joinQueue":
-                        setSearching(true);
-                        break;
-                    case "cancelQueue":
-                        setSearching(false);
-                        break;
-                }
-                break;
-            default:
-                break;
-        }
+                    switch (type) {
+                        case "joinQueue":
+                            setSearching(true);
+                            break;
+                        case "cancelQueue":
+                            setSearching(false);
+                            break;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        });
     });
 
     const logoutMutation = useMutation({
