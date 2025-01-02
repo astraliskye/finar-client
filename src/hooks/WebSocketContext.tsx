@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useCallback, useEffect, useState } from "react";
+import { createContext, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import useAuth from "./useAuth";
 
 const websocketUrl = import.meta.env.PROD
@@ -22,8 +22,7 @@ type WebSocketProviderProps = {
 }
 
 export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
-    console.log("WebSocketProvider");
-    const [socket, setSocket] = useState<WebSocket | null>(null);
+    const socketRef = useRef<WebSocket | null>(null);
     const {
         loading: authLoading,
         error: authError
@@ -31,9 +30,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     const [connected, setConnected] = useState(false);
 
     const connect = useCallback(() => {
-        console.log("Running connect()", socket, authLoading, authError);
-        if (socket === null && !authLoading && !authError) {
-            console.log("Checks passed, continuing connection.");
+        if (socketRef.current === null && !authLoading && !authError) {
             let intervalId = 0;
 
             const newSocket = new WebSocket(`${websocketUrl}/api/ws`);
@@ -52,29 +49,32 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
                 connect();
             }
 
-            setSocket(newSocket);
+            newSocket.onerror = (error) => {
+                console.error(error);
+            }
+
+            socketRef.current = newSocket;
         }
-    }, [socket, authLoading, authError]);
+    }, [authLoading, authError]);
 
     useEffect(() => {
-        console.log("Running effect.");
         connect();
 
         return () => {
-            socket?.close();
+            socketRef.current?.close();
         };
     }, [authLoading, authError]);
 
     return (
         <WebSocketContext.Provider value={{
             send: (message) => {
-                if (socket) {
-                    socket.send(JSON.stringify(message));
+                if (socketRef.current) {
+                    socketRef.current.send(JSON.stringify(message));
                 }
             },
             setMessageCallback: (messageCallback: (message: MessageEvent) => void) => {
-                if (socket) {
-                    socket.onmessage = messageCallback
+                if (socketRef.current) {
+                    socketRef.current.onmessage = messageCallback
                 }
             },
             connected
