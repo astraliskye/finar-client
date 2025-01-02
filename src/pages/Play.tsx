@@ -3,6 +3,7 @@ import Board from "../components/Board";
 import { useContext, useEffect, useState } from "react";
 import useTimer from "../hooks/useTimer";
 import { WebSocketContext } from "../hooks/WebSocketContext";
+import useAuth from "../hooks/useAuth";
 
 function Play() {
     const navigate = useNavigate();
@@ -12,7 +13,10 @@ function Play() {
     const [turn, setTurn] = useState(-1);
     const [moves, setMoves] = useState<number[]>([]);
     const [gameId, setGameId] = useState(0);
+    const [wins, setWins] = useState(0);
+    const [losses, setLosses] = useState(0);
     const { send, setMessageCallback, connected } = useContext(WebSocketContext);
+    const { loading: authLoading, error: authError } = useAuth();
 
     const {
         time: p1Time,
@@ -32,6 +36,12 @@ function Play() {
     const [winner, setWinner] = useState("");
 
     useEffect(() => {
+        if (authError) {
+            navigate(`/login?redirectTo=/game/${gameId}`);
+        }
+    }, [authLoading, authError]);
+
+    useEffect(() => {
         setMessageCallback(
             (message: MessageEvent) => {
                 const body = JSON.parse(message.data) as { type: string, data: any };
@@ -47,6 +57,8 @@ function Play() {
                             gameId: number,
                             player: string,
                             opponent: string,
+                            wins: number,
+                            losses: number,
                             turn: number,
                             moves: string,
                             timeControl: {
@@ -81,6 +93,8 @@ function Play() {
                         setPlayer(initialJoinData.player);
                         setOpponent(initialJoinData.opponent);
                         setTurn(initialJoinData.turn);
+                        setWins(initialJoinData.wins);
+                        setLosses(initialJoinData.losses);
                         setP1Timer(initialJoinData.timeControl.player1Time);
                         setP2Timer(initialJoinData.timeControl.player2Time);
                         setInitialJoinReceived(true);
@@ -152,9 +166,9 @@ function Play() {
         if (connected) {
             send({ type: "joinGame" });
         }
-    }, []);
+    }, [connected]);
 
-    if ((/* !connected || */ !initialJoinReceived) && !gameOver) {
+    if ((!connected || !initialJoinReceived) && !gameOver) {
         return <div className="w-screen h-screen flex items-center justify-center">
             <svg width="64" height="64" stroke="#fff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g><circle cx="12" cy="12" r="9.5" fill="none" strokeWidth="3" strokeLinecap="round"><animate attributeName="stroke-dasharray" dur="1.5s" calcMode="spline" values="0 150;42 150;42 150;42 150" keyTimes="0;0.475;0.95;1" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" repeatCount="indefinite" /><animate attributeName="stroke-dashoffset" dur="1.5s" calcMode="spline" values="0;-16;-59;-59" keyTimes="0;0.475;0.95;1" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" repeatCount="indefinite" /></circle><animateTransform attributeName="transform" type="rotate" dur="2s" values="0 12 12;360 12 12" repeatCount="indefinite" /></g></svg>
         </div>
@@ -187,6 +201,9 @@ function Play() {
                             <p className={turn !== moves.length % 2 ? "text-primary" : ""}>{opponent}</p>
                             <span>{turn === 1 ? (p1Time > 10000 ? Math.floor(p1Time / 1000) : (p1Time / 1000).toFixed(1)) : (p2Time > 10000 ? Math.floor(p2Time / 1000) : (p2Time / 1000).toFixed(1))}</span>
                         </div>
+                        <p>
+                            <span className="text-lime-500">{wins}</span> - <span className="text-red-500">{losses}</span>
+                        </p>
                         <Board moves={moves} onCellClick={(n: number) => {
                             send({
                                 gameId,

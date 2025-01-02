@@ -19,7 +19,7 @@ function Lobby() {
     }[]>([]);
     const [owner, setOwner] = useState("");
     const navigate = useNavigate();
-    const { username } = useAuth();
+    const { username, loading: authLoading, error: authError } = useAuth();
     const { send, setMessageCallback, connected } = useContext(WebSocketContext);
 
     useEffect(() => {
@@ -102,6 +102,12 @@ function Lobby() {
             });
         }
     }, [connected]);
+
+    useEffect(() => {
+        if (authError) {
+            navigate(`/login?redirectTo=/lobby/${id}`);
+        }
+    }, [authLoading, authError]);
 
     return <div className="h-screen">
         <h1 className="text-center m-16 text-2xl">{owner}'s lobby</h1>
