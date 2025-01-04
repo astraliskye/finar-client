@@ -18,6 +18,7 @@ function Lobby() {
         ready: boolean
     }[]>([]);
     const [owner, setOwner] = useState("");
+    const [maxPlayers, setMaxPlayers] = useState(0);
     const navigate = useNavigate();
     const { username, loading: authLoading, error: authError } = useAuth();
     const { send, setMessageCallback, connected } = useContext(WebSocketContext);
@@ -42,6 +43,7 @@ function Lobby() {
                         lobbyOwner: p.username === lobbyInfo.owner,
                     })));
                     setOwner(lobbyInfo.owner);
+                    setMaxPlayers(2);
                     break;
                 case "playerJoinedLobby":
                     const newPlayer = message.data as string;
@@ -88,6 +90,9 @@ function Lobby() {
                     const dest = message.data as string;
                     navigate(dest);
                     break;
+                case "lobbyNotFound":
+                    navigate("/?error=lobbyNotFound");
+                    break;
                 default:
                     return;
             }
@@ -121,9 +126,9 @@ function Lobby() {
                             Ready Up
                         </button>
                         {owner === username && <button className="w-full disabled:opacity-50 disabled:hover:bg-lime-500 disabled:active:bg-lime-500 py-2 rounded-md bg-lime-500 text-black hover:bg-lime-400 active:bg-lime-600 transition"
-                            disabled={!players.reduce<boolean>((acc, player) => {
-                                return acc && player.ready
-                            }, true)}
+                            disabled={players.reduce<number>((acc, player) => {
+                                return acc + (player.ready ? 1 : 0)
+                            }, 0) != maxPlayers}
                             onClick={() => send({ lobbyId: id, type: "startGame" })}>
                             Start Game
                         </button>}

@@ -44,7 +44,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
             newSocket.onclose = () => {
                 clearInterval(intervalId);
-                setSocket(null);
                 setConnected(false);
                 connect();
             }

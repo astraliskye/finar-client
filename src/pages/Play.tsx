@@ -14,6 +14,7 @@ function Play() {
     const [moves, setMoves] = useState<number[]>([]);
     const [gameId, setGameId] = useState(0);
     const [wins, setWins] = useState(0);
+    const [draws, setDraws] = useState(0);
     const [losses, setLosses] = useState(0);
     const { send, setMessageCallback, connected } = useContext(WebSocketContext);
     const { loading: authLoading, error: authError } = useAuth();
@@ -58,6 +59,7 @@ function Play() {
                             player: string,
                             opponent: string,
                             wins: number,
+                            draws: number,
                             losses: number,
                             turn: number,
                             moves: string,
@@ -94,6 +96,7 @@ function Play() {
                         setOpponent(initialJoinData.opponent);
                         setTurn(initialJoinData.turn);
                         setWins(initialJoinData.wins);
+                        setDraws(initialJoinData.draws);
                         setLosses(initialJoinData.losses);
                         setP1Timer(initialJoinData.timeControl.player1Time);
                         setP2Timer(initialJoinData.timeControl.player2Time);
@@ -147,6 +150,9 @@ function Play() {
 
                         setP1Timer(timeUpdateData.player1Time);
                         setP2Timer(timeUpdateData.player2Time);
+                        break;
+                    case "matchNotFound":
+                        navigate("/?error=matchNotFound");
                         break;
                     default:
                         break;
@@ -202,7 +208,7 @@ function Play() {
                             <span>{turn === 1 ? (p1Time > 10000 ? Math.floor(p1Time / 1000) : (p1Time / 1000).toFixed(1)) : (p2Time > 10000 ? Math.floor(p2Time / 1000) : (p2Time / 1000).toFixed(1))}</span>
                         </div>
                         <p>
-                            <span className="text-lime-500">{wins}</span> - <span className="text-red-500">{losses}</span>
+                            <span className="text-lime-500">{wins}</span> - {draws} - <span className="text-red-500">{losses}</span>
                         </p>
                         <Board moves={moves} onCellClick={(n: number) => {
                             send({
