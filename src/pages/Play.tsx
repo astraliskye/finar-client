@@ -16,6 +16,7 @@ function Play() {
     const [wins, setWins] = useState(0);
     const [draws, setDraws] = useState(0);
     const [losses, setLosses] = useState(0);
+    const [winningMoves, setWinningMoves] = useState<number[]>([]);
     const { send, setMessageCallback, connected } = useContext(WebSocketContext);
     const { loading: authLoading, error: authError } = useAuth();
 
@@ -140,8 +141,29 @@ function Play() {
 
                         setTimeout(() => {
                             setGameOver(true);
+                        }, 2000);
+                        break;
+                    case "finarGameOver":
+                        const finarGameOverData = body.data as {
+                            reason: string,
+                            winner: string,
+                            winningMoves: string
+                        };
+
+                        setGameOverState(finarGameOverData.reason.toLowerCase())
+                        setWinner(finarGameOverData.winner);
+                        setWinningMoves(finarGameOverData
+                            .winningMoves
+                            .split(",")
+                            .map(m => parseInt(m)));
+                        stopP1Timer();
+                        stopP2Timer();
+
+                        setTimeout(() => {
+                            setGameOver(true);
                         }, 1000);
                         break;
+                        
                     case "timeUpdate":
                         const timeUpdateData = body.data as {
                             player1Time: number,
@@ -210,7 +232,7 @@ function Play() {
                         <p>
                             <span className="text-lime-500">{wins}</span> - {draws} - <span className="text-red-500">{losses}</span>
                         </p>
-                        <Board moves={moves} onCellClick={(n: number) => {
+                        <Board winningMoves={winningMoves} moves={moves} onCellClick={(n: number) => {
                             send({
                                 gameId,
                                 type: "move",

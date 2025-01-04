@@ -28,9 +28,10 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         error: authError
     } = useAuth();
     const [connected, setConnected] = useState(false);
+    const [reconnecting, setReconnecting] = useState(false);
 
     const connect = useCallback(() => {
-        if (socketRef.current === null && !authLoading && !authError) {
+        if (socketRef.current === null && !reconnecting && !authLoading && !authError) {
             let intervalId = 0;
 
             const newSocket = new WebSocket(`${websocketUrl}/api/ws`);
@@ -40,12 +41,20 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
                     newSocket.send(JSON.stringify({ type: "heartbeat" }));
                 }, 2000);
                 setConnected(true);
+                setReconnecting(false);
             }
 
             newSocket.onclose = () => {
+                setReconnecting(false);
                 clearInterval(intervalId);
                 setConnected(false);
-                connect();
+                setReconnecting(true);
+                socketRef.current = null;
+
+                setTimeout(() => {
+                    setReconnecting(false);
+                    connect();
+                }, 1000);
             }
 
             newSocket.onerror = (error) => {
