@@ -132,13 +132,13 @@ function Home() {
                 <h1 className="text-6xl mb-4 text-primary tracking-widest font-bold">finar</h1>
                 <p className="mb-24">A game where the only goal is to make five in a row.</p>
                 <p className={`text-sm text-red-500 py-2 ${username !== "" && "invisible"}`}>Please log in or register to play the game.</p>
-                <div className={`flex flex-col items-center gap-4 border-2 border-stone-700 px-8 py-10 rounded-lg`}>
+                <div className={`flex flex-col items-center gap-4 rounded-lg`}>
                     <button className="select-none px-3 py-2 bg-primary text-black rounded-md disabled:opacity-50"
                         disabled={username === ""}
                         onClick={() => send({ type: "joinQueue" })}>
                         Quick Match
                     </button>
-                    <button className="select-none px-3 py-2 text-white rounded-md bg-stone-800 hover:bg-stone-700 transition disabled:opacity-50"
+                    <button className="select-none px-3 py-2 text-white rounded-md bg-stone-800 hover:bg-stone-700 transition disabled:opacity-50 disabled:hover:bg-stone-800"
                         disabled={username === ""}
                         onClick={() => createLobbyMutation.mutate()}>
                         Create Lobby
