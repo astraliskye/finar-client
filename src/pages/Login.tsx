@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import useAuth from "../hooks/useAuth";
 
 function Login() {
     const [username, setUsername] = useState("");

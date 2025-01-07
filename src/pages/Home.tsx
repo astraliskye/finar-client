@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { WebSocketContext } from "../hooks/WebSocketContext";
 
