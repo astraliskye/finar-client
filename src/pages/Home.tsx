@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { WebSocketContext } from "../hooks/WebSocketContext";
 
@@ -96,10 +96,11 @@ function Home() {
                     <button onClick={() => send({ type: "cancelQueue" })}>Cancel</button>
                 </div>
             </div>}
-            <header className="flex justify-between h-12 items-center px-4 absolute w-screen">
-                <p>Logo</p>
+            <header className="flex justify-between items-center px-4 absolute w-screen border-b-2 border-stone-500 py-4">
+                <p className="text-primary font-bold tracking-widest">finar</p>
                 {username === ""
                     ? <div className="flex gap-4">
+                        {username}
                         <Link
                             to="/register"
                             className="select-none px-2 py-1 bg-primary text-black rounded-md"
@@ -128,13 +129,17 @@ function Home() {
                 }
             </header>
             <main className="w-screen h-screen flex flex-col items-center justify-center">
-                <h1 className="text-4xl mb-12">finar</h1>
-                <div className="flex flex-col items-center gap-4">
-                    <button className="select-none px-3 py-2 bg-primary text-black rounded-md"
+                <h1 className="text-6xl mb-4 text-primary tracking-widest font-bold">finar</h1>
+                <p className="mb-24">A game where the only goal is to make five in a row.</p>
+                <p className={`text-sm text-red-500 py-2 ${username !== "" && "invisible"}`}>Please log in or register to play the game.</p>
+                <div className={`flex flex-col items-center gap-4 border-2 border-stone-700 px-8 py-10 rounded-lg`}>
+                    <button className="select-none px-3 py-2 bg-primary text-black rounded-md disabled:opacity-50"
+                        disabled={username === ""}
                         onClick={() => send({ type: "joinQueue" })}>
                         Quick Match
                     </button>
-                    <button className="select-none px-3 py-2 text-white rounded-md hover:bg-stone-800 transition"
+                    <button className="select-none px-3 py-2 text-white rounded-md bg-stone-800 hover:bg-stone-700 transition disabled:opacity-50"
+                        disabled={username === ""}
                         onClick={() => createLobbyMutation.mutate()}>
                         Create Lobby
                     </button>
