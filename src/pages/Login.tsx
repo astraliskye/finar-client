@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 function Login() {
     const [username, setUsername] = useState("");
@@ -32,10 +33,10 @@ function Login() {
                 throw new Error("Something went wrong.");
             }
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["userData"] })
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["userData"] })
             navigate(searchParams.get("redirectTo") || "/", {
-                replace: true
+                replace: true,
             });
         },
         onError: (error) => {
