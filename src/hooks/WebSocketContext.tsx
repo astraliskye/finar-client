@@ -2,7 +2,7 @@ import { createContext, ReactNode, useCallback, useEffect, useRef, useState } fr
 import useAuth from "./useAuth";
 
 const websocketUrl = import.meta.env.PROD
-    ? "wss://skyegibney.com"
+    ? "wss://finar.skyegibney.com"
     : "";
 
 type WebSocketContext = {
