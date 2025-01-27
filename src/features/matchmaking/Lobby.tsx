@@ -2,8 +2,8 @@ import Chat from "./Chat";
 import { useNavigate, useParams } from "react-router-dom";
 import PlayerList from "./PlayerList";
 import { useContext, useEffect, useState } from "react";
-import useAuth from "../hooks/useAuth";
-import { WebSocketContext } from "../hooks/WebSocketContext";
+import useAuth from "@hooks/useAuth";
+import { WebSocketContext } from "@contexts/WebSocketContext";
 
 function Lobby() {
     const { id: idString } = useParams();

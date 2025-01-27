@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useEffect, useRef, useState } from "react";
-import useAuth from "./useAuth";
+import useAuth from "../hooks/useAuth";
 
 const websocketUrl = import.meta.env.PROD
     ? "wss://finar.skyegibney.com"

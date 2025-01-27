@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import useAuth from "../hooks/useAuth";
-import { WebSocketContext } from "../hooks/WebSocketContext";
+import useAuth from "../../hooks/useAuth";
+import { WebSocketContext } from "../../contexts/WebSocketContext";
 
 function Home() {
     const [searching, setSearching] = useState(false);
