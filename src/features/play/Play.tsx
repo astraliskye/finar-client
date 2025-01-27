@@ -1,9 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import Board from "../components/Board";
+import Board from "./components/Board";
 import { useContext, useEffect, useState } from "react";
-import useTimer from "../hooks/useTimer";
-import { WebSocketContext } from "../hooks/WebSocketContext";
-import useAuth from "../hooks/useAuth";
+import useTimer from "./hooks/useTimer";
+import { WebSocketContext } from "@contexts/WebSocketContext";
+import useAuth from "@hooks/useAuth";
 
 function Play() {
     const navigate = useNavigate();

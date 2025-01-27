@@ -1,5 +1,14 @@
 {
   "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+        "@hooks/*": ["hooks/*"],
+        "@contexts/*": ["contexts/*"],
+        "@components/*": ["components/*"],
+        "@assets/*": ["assets/*"],
+        "@utils/*": ["utils/*"],
+        "@features/*": ["features/*"]
+    },
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
