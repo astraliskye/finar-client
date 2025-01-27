@@ -9,19 +9,26 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Play from '@features/play/Play.tsx'
 import Lobby from '@features/matchmaking/Lobby.tsx'
 import WebSocketProvider from '@contexts/WebSocketContext.tsx'
+import HeaderLayout from './layouts/HeaderLayout'
 
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <Home />
+        element: <HeaderLayout>
+            <Home />
+        </HeaderLayout>
     },
     {
         path: "/game/:id",
-        element: <Play />
+        element: <HeaderLayout>
+            <Play />
+        </HeaderLayout>
     },
     {
         path: "/lobby/:id",
-        element: <Lobby />
+        element: <HeaderLayout>
+            <Lobby />
+        </HeaderLayout>
     },
     {
         path: "/login",
