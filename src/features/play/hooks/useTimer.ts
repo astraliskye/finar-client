@@ -7,7 +7,7 @@ function useTimer(initialTime: number) {
     const [isRunning, setIsRunning] = useState(false);
 
     useEffect(() => {
-        let intervalId: number;
+        let intervalId: NodeJS.Timeout;
 
         if (isRunning) {
             if (time > 10000) {
