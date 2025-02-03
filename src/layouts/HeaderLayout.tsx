@@ -35,8 +35,8 @@ function HeaderLayout({ children }: HeaderLayoutProps) {
         }
     });
     return <>
-        <header className="flex justify-between items-center px-4 absolute w-screen border-b-2 border-stone-500 py-4">
-            <p className="text-primary font-bold tracking-widest">finar</p>
+        <header className="flex justify-between items-center px-4 w-screen border-b-2 border-stone-500 py-4 bg-stone-800">
+            <Link to="/" className="text-primary font-bold tracking-widest select-none">finar</Link>
             {username === ""
                 ? <div className="flex gap-4">
                     {username}
