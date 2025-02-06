@@ -3,7 +3,7 @@ import Board from "./components/Board";
 import { useContext, useEffect, useState } from "react";
 import useTimer from "./hooks/useTimer";
 import { WebSocketContext } from "@contexts/WebSocketContext";
-import useAuth from "@hooks/useAuth";
+import { useMeQuery } from "@hooks/useMeQuery";
 
 function Play() {
     const navigate = useNavigate();
@@ -18,7 +18,7 @@ function Play() {
     const [losses, setLosses] = useState(0);
     const [winningMoves, setWinningMoves] = useState<number[]>([]);
     const { send, setMessageCallback, connected } = useContext(WebSocketContext);
-    const { loading: authLoading, error: authError } = useAuth();
+    const { isLoading: authLoading, isError: authError } = useMeQuery();
 
     const {
         time: p1Time,
@@ -141,7 +141,7 @@ function Play() {
 
                         setTimeout(() => {
                             setGameOver(true);
-                        }, 2000);
+                        }, 3000);
                         break;
                     case "finarGameOver":
                         const finarGameOverData = body.data as {

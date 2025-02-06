@@ -1,5 +1,5 @@
+import { useMeQuery } from "@hooks/useMeQuery";
 import { createContext, ReactNode, useCallback, useEffect, useRef, useState } from "react";
-import useAuth from "../hooks/useAuth";
 
 const websocketUrl = import.meta.env.PROD
     ? "wss://finar.skyegibney.com"
@@ -24,9 +24,9 @@ type WebSocketProviderProps = {
 export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     const socketRef = useRef<WebSocket | null>(null);
     const {
-        loading: authLoading,
-        error: authError
-    } = useAuth();
+        isLoading: authLoading,
+        isError: authError
+    } = useMeQuery();
     const [connected, setConnected] = useState(false);
     const [reconnecting, setReconnecting] = useState(false);
 

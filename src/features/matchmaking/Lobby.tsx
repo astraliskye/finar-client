@@ -2,8 +2,8 @@ import Chat from "./Chat";
 import { useNavigate, useParams } from "react-router-dom";
 import PlayerList from "./PlayerList";
 import { useContext, useEffect, useState } from "react";
-import useAuth from "@hooks/useAuth";
 import { WebSocketContext } from "@contexts/WebSocketContext";
+import { useMeQuery } from "@hooks/useMeQuery";
 
 function Lobby() {
     const { id: idString } = useParams();
@@ -20,7 +20,7 @@ function Lobby() {
     const [owner, setOwner] = useState("");
     const [maxPlayers, setMaxPlayers] = useState(0);
     const navigate = useNavigate();
-    const { username, loading: authLoading, error: authError } = useAuth();
+    const { data, isLoading: authLoading, isError: authError } = useMeQuery();
     const { send, setMessageCallback, connected } = useContext(WebSocketContext);
 
     useEffect(() => {
@@ -125,7 +125,8 @@ function Lobby() {
                             onClick={() => send({ lobbyId: id, type: "readyPlayer" })}>
                             Ready Up
                         </button>
-                        {owner === username && <button className="w-full disabled:opacity-50 disabled:hover:bg-lime-500 disabled:active:bg-lime-500 py-2 rounded-md bg-lime-500 text-black hover:bg-lime-400 active:bg-lime-600 transition"
+                        
+                        {owner === data?.username && <button className="w-full disabled:opacity-50 disabled:hover:bg-lime-500 disabled:active:bg-lime-500 py-2 rounded-md bg-lime-500 text-black hover:bg-lime-400 active:bg-lime-600 transition"
                             disabled={players.reduce<number>((acc, player) => {
                                 return acc + (player.ready ? 1 : 0)
                             }, 0) != maxPlayers}
