@@ -1,5 +1,5 @@
-import useAuth from "@hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMeQuery } from "@hooks/useMeQuery";
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
@@ -8,7 +8,7 @@ type HeaderLayoutProps = {
 }
 
 function HeaderLayout({ children }: HeaderLayoutProps) {
-    const { username, setUsername } = useAuth();
+    const { data, isError } = useMeQuery();
     const queryClient = useQueryClient();
 
     const logoutMutation = useMutation({
@@ -20,26 +20,23 @@ function HeaderLayout({ children }: HeaderLayoutProps) {
                 },
             });
 
-            switch (response.status) {
-                case 200:
-                    setUsername("");
-                    return await response.json();
-                case 500:
-                    throw new Error("Server error.");
-                default:
-                    throw new Error("Something went wrong.");
+            if (response.status !== 200) {
+                const errorData = await response.json();
+                throw new Error(errorData.error);
             }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["userData"] })
+            queryClient.invalidateQueries({
+                queryKey: ["userData"]
+            })
         }
     });
+
     return <>
-        <header className="flex justify-between items-center px-4 w-screen border-b-2 border-stone-500 py-4 bg-stone-800">
+        <header className="fixed top-0 flex justify-between items-center px-4 w-screen border-b-2 border-stone-500 h-16 bg-stone-800">
             <Link to="/" className="text-primary font-bold tracking-widest select-none">finar</Link>
-            {username === ""
+            {isError || !data
                 ? <div className="flex gap-4">
-                    {username}
                     <Link
                         to="/register"
                         className="select-none px-2 py-1 bg-primary text-black rounded-md"
@@ -55,7 +52,7 @@ function HeaderLayout({ children }: HeaderLayoutProps) {
                 </div>
                 :
                 <div className="flex items-center justify-center gap-4">
-                    <p>Logged in as <span className="text-primary">{username}</span></p>
+                    <p>Logged in as <span className="text-primary">{data.username}</span></p>
                     <button
                         className="px-2 py-1 underline"
                         onClick={() => {
@@ -67,7 +64,7 @@ function HeaderLayout({ children }: HeaderLayoutProps) {
                 </div>
             }
         </header>
-        <main>
+        <main className="pt-16">
             {children}
         </main>
     </>

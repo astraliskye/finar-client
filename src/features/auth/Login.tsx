@@ -12,28 +12,26 @@ function Login() {
     const queryClient = useQueryClient();
 
     const loginMutation = useMutation({
-        mutationFn: async ({user, pass}: {user: string, pass: string}) => {
+        mutationFn: async ({ user, pass }: { user: string, pass: string }) => {
             const response = await fetch("/api/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({username: user, password: pass})
+                body: JSON.stringify({ username: user, password: pass })
             });
 
-            switch (response.status) {
-            case 200:
-                return await response.json();
-            case 401:
-                throw new Error("Invalid username or password.");
-            case 500:
-                throw new Error("Server error.");
-            default:
-                throw new Error("Something went wrong.");
+            if (response.status !== 200) {
+                const errorData = await response.json();
+                console.log(errorData);
+                throw new Error(errorData.error)
             }
         },
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ["userData"] })
+        onSuccess: () => {
+            queryClient.refetchQueries({
+                queryKey: ["userData"],
+            });
+
             navigate(searchParams.get("redirectTo") || "/", {
                 replace: true,
             });

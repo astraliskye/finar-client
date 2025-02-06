@@ -25,19 +25,15 @@ function Register() {
                 body: JSON.stringify(data)
             });
 
-            switch (response.status) {
-            case 201:
-                return;
-            case 401:
-                throw new Error("Invalid form input.");
-            case 500:
-                throw new Error("Server error.");
-            default:
-                throw new Error("Something went wrong.");
+            if (response.status !== 201) {
+                const errorData = await response.json();
+                throw new Error(errorData.error);
             }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["userData"] })
+            queryClient.refetchQueries({
+                queryKey: ["userData"],
+            })
             navigate("/");
         },
         onError: (error) => {
@@ -64,7 +60,7 @@ function Register() {
                     containsSpecial = true;
                 }
             }
-            
+
             if (!containsSpecial) {
                 error += "\nPassword must contain a special character.";
             }
