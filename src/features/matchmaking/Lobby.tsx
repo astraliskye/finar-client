@@ -1,7 +1,7 @@
 import Chat from "./Chat";
 import { useNavigate, useParams } from "react-router-dom";
 import PlayerList from "./PlayerList";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { WebSocketContext } from "@contexts/WebSocketContext";
 import { useMeQuery } from "@hooks/useMeQuery";
 
