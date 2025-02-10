@@ -1,12 +1,18 @@
+import { useMeQuery } from "@hooks/useMeQuery"
+
 type PlayerListProps = {
     players: {
         username: string,
         lobbyOwner: boolean,
         ready: boolean
-    }[]
+    }[],
+    kickPlayer: (player: string) => void,
+    owner: string
 }
 
-function PlayerList({ players }: PlayerListProps) {
+function PlayerList({ players, kickPlayer, owner }: PlayerListProps) {
+    const { data } = useMeQuery();
+
     return <div className="flex flex-col gap-2">
         <p className="text-center text-lg">Players</p>
         {players.map(player => (
@@ -17,12 +23,23 @@ function PlayerList({ players }: PlayerListProps) {
                         {player.username}
                     </p>
                 </div>
-                <div>
+                <div className="flex items-center gap-2">
                     <svg className={player.ready ? "" : "invisible"} width="20px" height="20px" fill="lime" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.047,4,22,8.325,9.3,20,2,12.68,6.136,8.533,9.474,11.88Z" /></svg>
+                    {data?.username === owner && player.username !== data?.username
+                        && <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 24 24"
+                            className="cursor-pointer"
+                            onClick={() => kickPlayer(player.username)}>
+                            <path
+                                fill="red"
+                                d="M18.3 5.7c-.4-.4-1-.4-1.4 0L12 10.6 7.1 5.7c-.4-.4-1-.4-1.4 0-.4.4-.4 1 0 1.4L10.6 12l-4.9 4.9c-.4.4-.4 1 0 1.4.2.2.4.3.7.3.3 0 .5-.1.7-.3L12 13.4l4.9 4.9c.2.2.4.3.7.3.3 0 .5-.1.7-.3.4-.4.4-1 0-1.4L13.4 12l4.9-4.9c.4-.4.4-1 0-1.4z"
+                            />
+                        </svg>
+                    }
                 </div>
             </div>
-        ))}
-    </div>
+        ))
+        }
+    </div >
 }
 
 export default PlayerList;

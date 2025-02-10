@@ -1,7 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
 export function useMeQuery() {
-    const meQuery = useQuery({
+    const meQuery = useQuery<{
+        id: number,
+        username: string,
+        email: string,
+        roles: string[]
+    }>({
         queryKey: ["userData"],
         queryFn: async () => {
             const response = await fetch("/api/me");
