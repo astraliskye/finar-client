@@ -1,7 +1,7 @@
 import Chat from "./Chat";
 import { useNavigate, useParams } from "react-router-dom";
 import PlayerList from "./PlayerList";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { WebSocketContext } from "@contexts/WebSocketContext";
 import { useMeQuery } from "@hooks/useMeQuery";
 
@@ -53,6 +53,22 @@ function Lobby() {
                         { username: newPlayer, lobbyOwner: newPlayer === owner, ready: false }
                     ]);
                     break;
+                case "playerKicked":
+                    const playerKickedMessage = message.data as {
+                        lobbyId: number,
+                        player: string
+                    };
+
+                    if (playerKickedMessage.player === data?.username) {
+                        navigate("/?error=playerKicked");
+                    }
+
+                    if (id === playerKickedMessage.lobbyId) {
+                        setPlayers(prevPlayers =>
+                            prevPlayers.filter(player =>
+                                player.username !== playerKickedMessage.player));
+                    }
+                    break;
                 case "playerReadyStatus":
                     const readyStatus = message.data as {
                         username: string,
@@ -68,7 +84,7 @@ function Lobby() {
                                 ready: readyStatus.ready
                             };
                         }
-                    }))
+                    }));
 
                     break;
                 case "lobbyChat":
@@ -119,13 +135,19 @@ function Lobby() {
         <div className="flex md:flex-row gap-6 md:justify-center md:h-2/3 md:px-8 px-4 flex-col">
             <div className="md:w-3/12 flex flex-col bg-stone-900 rounded-lg p-6 h-full justify-between">
                 <div className="flex flex-col justify-between gap-8 h-full">
-                    <PlayerList players={players} />
+                    <PlayerList players={players}
+                        kickPlayer={(player: string) => send({
+                            lobbyId: id,
+                            type: "kickPlayer",
+                            data: player
+                        })}
+                        owner={owner} />
                     <div className="flex flex-col gap-2">
                         <button className="w-full py-2 rounded-md bg-lime-500 text-black hover:bg-lime-400 active:bg-lime-600 transition"
                             onClick={() => send({ lobbyId: id, type: "readyPlayer" })}>
                             Ready Up
                         </button>
-                        
+
                         {owner === data?.username && <button className="w-full disabled:opacity-50 disabled:hover:bg-lime-500 disabled:active:bg-lime-500 py-2 rounded-md bg-lime-500 text-black hover:bg-lime-400 active:bg-lime-600 transition"
                             disabled={players.reduce<number>((acc, player) => {
                                 return acc + (player.ready ? 1 : 0)

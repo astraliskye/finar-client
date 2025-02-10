@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react"
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { WebSocketContext } from "@contexts/WebSocketContext";
 import { useMeQuery } from "@hooks/useMeQuery";
 
@@ -10,6 +10,7 @@ function Home() {
     const { send, setMessageCallback } = useContext(WebSocketContext);
     const { data, isError } = useMeQuery();
     const [showInstructions, setShowInstructions] = useState(false);
+    const [searchParams, _] = useSearchParams();
 
     useEffect(() => {
         setMessageCallback((message: MessageEvent) => {
@@ -166,6 +167,9 @@ function Home() {
                     <h1 className="text-6xl mb-4 text-primary tracking-widest font-bold">finar</h1>
                     <p className="mb-24">A game where the only goal is to make five in a row.</p>
                 </div>
+                {searchParams.has("error") && <p className="text-red-500 text-center mb-4">
+                    {searchParams.get("error") === "playerKicked" && "You have been kicked from the lobby."}
+                </p>}
                 <div className={`flex flex-col items-center gap-4 rounded-lg`}>
                     <button className="select-none px-3 py-2 bg-primary text-black rounded-md disabled:opacity-50"
                         onClick={() => send({ type: "joinQueue" })}>
