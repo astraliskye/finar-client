@@ -6,7 +6,7 @@ const websocketUrl = import.meta.env.PROD
     : "";
 
 type WebSocketContext = {
-    send: (message: { gameId?: number, lobbyId?: number, type: string, data?: any }) => void,
+    send: (message: { gameId?: string, lobbyId?: string, type: string, data?: any }) => void,
     setMessageCallback: (messageCallback: (message: MessageEvent) => void) => void,
     connected: boolean
 }

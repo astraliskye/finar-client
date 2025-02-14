@@ -6,8 +6,7 @@ import { WebSocketContext } from "@contexts/WebSocketContext";
 import { useMeQuery } from "@hooks/useMeQuery";
 
 function Lobby() {
-    const { id: idString } = useParams();
-    const id = parseInt(idString || "");
+    const { id } = useParams();;
     const [messages, setMessages] = useState<{
         username: string,
         content: string
@@ -31,7 +30,7 @@ function Lobby() {
             switch (message.type) {
                 case "lobbyInfo":
                     const lobbyInfo = message.data as {
-                        id: number,
+                        id: string,
                         owner: string,
                         players: {
                             username: string,
@@ -55,7 +54,7 @@ function Lobby() {
                     break;
                 case "playerKicked":
                     const playerKickedMessage = message.data as {
-                        lobbyId: number,
+                        lobbyId: string,
                         player: string
                     };
 
@@ -67,6 +66,27 @@ function Lobby() {
                         setPlayers(prevPlayers =>
                             prevPlayers.filter(player =>
                                 player.username !== playerKickedMessage.player));
+                    }
+                    break;
+                case "playerLeft":
+                    const playerLeftMessage = message.data as {
+                        lobbyId: string,
+                        player: string
+                    };
+
+                    if (id === playerLeftMessage.lobbyId) {
+                        setPlayers(prevPlayers =>
+                            prevPlayers.filter(player =>
+                                player.username !== playerLeftMessage.player));
+                    }
+                    break;
+                case "lobbyDisbanded":
+                    const lobbyDisbandedMessage = message.data as {
+                        lobbyId: string
+                    };
+
+                    if (id === lobbyDisbandedMessage.lobbyId) {
+                        navigate("/?error=lobbyDisbanded");
                     }
                     break;
                 case "playerReadyStatus":
@@ -99,7 +119,7 @@ function Lobby() {
                     ]);
                     break;
                 case "matchFound":
-                    const gameId = message.data as number;
+                    const gameId = message.data as string;
                     navigate(`/game/${gameId}`)
                     break;
                 case "redirect":

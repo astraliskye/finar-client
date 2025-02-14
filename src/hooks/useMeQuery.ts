@@ -22,7 +22,7 @@ export function useMeQuery() {
         refetchOnMount: false,
         refetchOnReconnect: false,
         refetchOnWindowFocus: false,
-        staleTime: Infinity
+        staleTime: 10 * 60 * 1000
     });
 
     return meQuery;

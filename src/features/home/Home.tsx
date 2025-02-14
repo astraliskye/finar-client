@@ -14,12 +14,13 @@ function Home() {
 
     useEffect(() => {
         setMessageCallback((message: MessageEvent) => {
-            const body = JSON.parse(message.data) as { type: string, data: any };
+            const body = JSON.parse(message.data) as { type: string, data: string };
+            console.log(message.data);
+            console.log(body);
 
             switch (body.type) {
                 case "matchFound":
-                    const gameId = body.data as number;
-
+                    const gameId = body.data as string;
                     navigate(`/game/${gameId}`);
                     break;
                 case "ack":
@@ -53,7 +54,7 @@ function Home() {
                 lobbyId: string
             };
 
-            if (response.status === 200) {
+            if (response.status === 200 && body.lobbyId !== "-1") {
                 navigate(`/lobby/${body.lobbyId}`);
             }
         }
@@ -169,6 +170,7 @@ function Home() {
                 </div>
                 {searchParams.has("error") && <p className="text-red-500 text-center mb-4">
                     {searchParams.get("error") === "playerKicked" && "You have been kicked from the lobby."}
+                    {searchParams.get("error") === "lobbyDisbanded" && "The lobby has been disbanded."}
                 </p>}
                 <div className={`flex flex-col items-center gap-4 rounded-lg`}>
                     <button className="select-none px-3 py-2 bg-primary text-black rounded-md disabled:opacity-50"

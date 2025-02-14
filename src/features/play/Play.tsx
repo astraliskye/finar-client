@@ -12,7 +12,7 @@ function Play() {
     const [opponent, setOpponent] = useState("");
     const [turn, setTurn] = useState(-1);
     const [moves, setMoves] = useState<number[]>([]);
-    const [gameId, setGameId] = useState(0);
+    const [gameId, setGameId] = useState("");
     const [wins, setWins] = useState(0);
     const [draws, setDraws] = useState(0);
     const [losses, setLosses] = useState(0);
@@ -56,7 +56,7 @@ function Play() {
                         break;
                     case "initialJoin":
                         const initialJoinData = body.data as {
-                            gameId: number,
+                            gameId: string,
                             player: string,
                             opponent: string,
                             wins: number,
@@ -73,23 +73,23 @@ function Play() {
                         setGameId(initialJoinData.gameId);
 
                         if (initialJoinData.moves !== "") {
-                            const newMoves = initialJoinData.moves.split(",").map(n => Number.parseInt(n));
+                            const newMoves = initialJoinData.moves.split(",")
+                                .map(n => Number.parseInt(n))
+                                .filter(n => n !== Number.NaN);
 
-                            for (let i = 0; i < newMoves.length; i++) {
-                                moves.push(newMoves[i]);
-                            }
-
-                            setMoves([...moves]);
+                            setMoves(newMoves);
 
                             setP1Timer(initialJoinData.timeControl.player1Time);
                             setP2Timer(initialJoinData.timeControl.player2Time);
 
-                            if (moves.length % 2 === 0 && newMoves.length !== 0) {
-                                startP1Timer();
-                                stopP2Timer();
-                            } else if (moves.length % 2 === 1 && newMoves.length > 1) {
-                                startP2Timer();
-                                stopP1Timer();
+                            if (moves.length > 1) {
+                                if (moves.length % 2 === 0) {
+                                    startP1Timer();
+                                    stopP2Timer();
+                                } else if (moves.length % 2 === 1) {
+                                    startP2Timer();
+                                    stopP1Timer();
+                                }
                             }
                         }
 
@@ -113,20 +113,20 @@ function Play() {
                             }
                         };
 
-                        moves.push(moveData.n);
+                        setMoves(prevMoves => [...prevMoves, moveData.n]);
 
-                        if (moves.length % 2 === 0 && moves.length !== 0) {
-                            startP1Timer();
-                            stopP2Timer();
-                        } else if (moves.length % 2 === 1 && moves.length > 1) {
-                            startP2Timer();
-                            stopP1Timer();
+                        if (moves.length > 1) {
+                            if (moves.length % 2 === 0) {
+                                startP1Timer();
+                                stopP2Timer();
+                            } else if (moves.length % 2 === 1) {
+                                startP2Timer();
+                                stopP1Timer();
+                            }
                         }
 
                         setP1Timer(moveData.timeControl.player1Time);
                         setP2Timer(moveData.timeControl.player2Time);
-
-                        setMoves([...moves]);
                         break;
                     case "gameOver":
                         const gameOverData = body.data as {
@@ -139,9 +139,7 @@ function Play() {
                         stopP1Timer();
                         stopP2Timer();
 
-                        setTimeout(() => {
-                            setGameOver(true);
-                        }, 3000);
+                        setGameOver(true);
                         break;
                     case "finarGameOver":
                         const finarGameOverData = body.data as {
@@ -161,9 +159,9 @@ function Play() {
 
                         setTimeout(() => {
                             setGameOver(true);
-                        }, 1000);
+                        }, 2000);
                         break;
-                        
+
                     case "timeUpdate":
                         const timeUpdateData = body.data as {
                             player1Time: number,
