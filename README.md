@@ -1,30 +1,44 @@
-# React + TypeScript + Vite
+# FINAR client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the frontend for the online multiplayer tic-tac-toe app FINAR, where
+players complete to be the first to make five-in-a-row on a 10 by 10 board.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The app features:
+- Intense timed player vs player games
+- Players make moves in real-time
+- In-lobby and in-game instant messaging
+- Lobby-based and quickmatch-based matchmaking
+- View wins, losses, and draws vs the current opponent in-game
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Tech Stack
 
-- Configure the top-level `parserOptions` property like this:
+### Frontend
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+- React
+- Vite
+- TypeScript
+- React Query
+- React Router
+- WebSocket API
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+### Backend
+
+- Spring
+- Spring Security
+- Spring Session
+- Websockets
+- Redis for user sessions
+- PostgreSQL
+
+## Roadmap
+
+Featues that may come in the future:
+- Player rematch functionality
+- User profiles
+- Adding friends
+- Other game modes
+- Custom time controls
+- Achievements
