@@ -11,8 +11,8 @@ type ChatProps = {
 function Chat({ messages, sendChatMessage }: ChatProps) {
     const [inputMessage, setInputMessage] = useState("");
 
-    return <div className="p-6 bg-stone-900 flex-grow rounded-lg flex flex-col h-full gap-10">
-        <div className="md:h-full flex-grow bg-stone-800 rounded-lg overflow-hidden flex flex-col justify-end h-48">
+    return <div className="h-96 min-w-96 max-w-3xl p-6 bg-stone-900 flex-grow rounded-lg flex flex-col gap-10">
+        <div className="md:h-full flex-grow bg-stone-800 rounded-lg overflow-y-auto flex flex-col justify-end h-48">
             {messages.map((message, i) => (
                 <p key={i} className={`${i % 2 == 0 ? "bg-stone-700" : "bg-stone-800"} px-4 py-2`}>
                     <span className="text-stone-400 text-sm mr-2">{message.username}</span> {message.content}

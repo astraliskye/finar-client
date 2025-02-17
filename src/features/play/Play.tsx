@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from "react";
 import useTimer from "./hooks/useTimer";
 import { WebSocketContext } from "@contexts/WebSocketContext";
 import { useMeQuery } from "@hooks/useMeQuery";
+import Chat from "@components/Chat";
 
 function Play() {
     const navigate = useNavigate();
@@ -19,6 +20,10 @@ function Play() {
     const [winningMoves, setWinningMoves] = useState<number[]>([]);
     const { send, setMessageCallback, connected } = useContext(WebSocketContext);
     const { isLoading: authLoading, isError: authError } = useMeQuery();
+    const [messages, setMessages] = useState<{
+        username: string,
+        content: string
+    }[]>([]);
 
     const {
         time: p1Time,
@@ -102,6 +107,17 @@ function Play() {
                         setP1Timer(initialJoinData.timeControl.player1Time);
                         setP2Timer(initialJoinData.timeControl.player2Time);
                         setInitialJoinReceived(true);
+                        break;
+                    case "gameChat":
+                        const newMessage = body.data as {
+                            username: string,
+                            content: string
+                        };
+
+                        setMessages(prevMessages => [
+                            ...prevMessages,
+                            newMessage
+                        ]);
                         break;
                     case "move":
                         const moveData = body.data as {
@@ -230,13 +246,20 @@ function Play() {
                         <p>
                             <span className="text-lime-500">{wins}</span> - {draws} - <span className="text-red-500">{losses}</span>
                         </p>
-                        <Board winningMoves={winningMoves} moves={moves} onCellClick={(n: number) => {
-                            send({
+                        <div className="flex md:flex-row gap-10 flex-col items-center">
+                            <Board winningMoves={winningMoves} moves={moves} onCellClick={(n: number) => {
+                                send({
+                                    gameId,
+                                    type: "move",
+                                    data: n
+                                })
+                            }} />
+                            <Chat messages={messages} sendChatMessage={(message: string) => send({
                                 gameId,
-                                type: "move",
-                                data: n
-                            })
-                        }} />
+                                type: "gameChat",
+                                data: message
+                            })} />
+                        </div>
                     </div>
                 </div >
             </>

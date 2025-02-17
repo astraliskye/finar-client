@@ -1,4 +1,4 @@
-import Chat from "./Chat";
+import Chat from "@components/Chat";
 import { useNavigate, useParams } from "react-router-dom";
 import PlayerList from "./PlayerList";
 import { useContext, useEffect, useState } from "react";
