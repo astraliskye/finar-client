@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import Board from "./components/Board";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import useTimer from "./hooks/useTimer";
 import { WebSocketContext } from "@contexts/WebSocketContext";
 import { useMeQuery } from "@hooks/useMeQuery";
@@ -48,154 +48,164 @@ function Play() {
         }
     }, [authLoading, authError]);
 
-    useEffect(() => {
-        setMessageCallback(
-            (message: MessageEvent) => {
-                const body = JSON.parse(message.data) as { type: string, data: any };
-                console.log(body);
+    const messageCallback = useCallback((message: MessageEvent) => {
+        const body = JSON.parse(message.data) as { type: string, data: any };
+        console.log(body);
 
-                switch (body.type) {
-                    case "redirect":
-                        const dest = body.data as string;
-                        navigate(dest);
-                        break;
-                    case "initialJoin":
-                        const initialJoinData = body.data as {
-                            gameId: string,
-                            player: string,
-                            opponent: string,
-                            wins: number,
-                            draws: number,
-                            losses: number,
-                            turn: number,
-                            moves: string,
-                            timeControl: {
-                                player1Time: number,
-                                player2Time: number
-                            }
-                        };
+        switch (body.type) {
+            case "redirect":
+                const dest = body.data as string;
+                navigate(dest);
+                break;
+            case "initialJoin":
+                const initialJoinData = body.data as {
+                    gameId: string,
+                    player: string,
+                    opponent: string,
+                    wins: number,
+                    draws: number,
+                    losses: number,
+                    turn: number,
+                    moves: string,
+                    timeControl: {
+                        player1Time: number,
+                        player2Time: number
+                    }
+                };
 
-                        setGameId(initialJoinData.gameId);
+                setGameId(initialJoinData.gameId);
 
-                        if (initialJoinData.moves !== "") {
-                            const newMoves = initialJoinData.moves.split(",")
-                                .map(n => Number.parseInt(n))
-                                .filter(n => n !== Number.NaN);
+                if (initialJoinData.moves !== "") {
+                    const newMoves = initialJoinData.moves.split(",")
+                        .map(n => Number.parseInt(n))
+                        .filter(n => n !== Number.NaN);
 
-                            setMoves(newMoves);
+                    setMoves(_ => {
+                        let nMoves = newMoves.length;
 
-                            setP1Timer(initialJoinData.timeControl.player1Time);
-                            setP2Timer(initialJoinData.timeControl.player2Time);
-
-                            if (moves.length > 1) {
-                                if (moves.length % 2 === 0) {
-                                    startP1Timer();
-                                    stopP2Timer();
-                                } else if (moves.length % 2 === 1) {
-                                    startP2Timer();
-                                    stopP1Timer();
-                                }
-                            }
-                        }
-
-                        setPlayer(initialJoinData.player);
-                        setOpponent(initialJoinData.opponent);
-                        setTurn(initialJoinData.turn);
-                        setWins(initialJoinData.wins);
-                        setDraws(initialJoinData.draws);
-                        setLosses(initialJoinData.losses);
-                        setP1Timer(initialJoinData.timeControl.player1Time);
-                        setP2Timer(initialJoinData.timeControl.player2Time);
-                        setInitialJoinReceived(true);
-                        break;
-                    case "gameChat":
-                        const newMessage = body.data as {
-                            username: string,
-                            content: string
-                        };
-
-                        setMessages(prevMessages => [
-                            ...prevMessages,
-                            newMessage
-                        ]);
-                        break;
-                    case "move":
-                        const moveData = body.data as {
-                            player: string,
-                            n: number,
-                            timeControl: {
-                                player1Time: number,
-                                player2Time: number
-                            }
-                        };
-
-                        setMoves(prevMoves => [...prevMoves, moveData.n]);
-
-                        if (moves.length > 1) {
-                            if (moves.length % 2 === 0) {
+                        if (nMoves > 1) {
+                            if (nMoves % 2 === 0) {
                                 startP1Timer();
                                 stopP2Timer();
-                            } else if (moves.length % 2 === 1) {
+                            } else if (nMoves % 2 === 1) {
                                 startP2Timer();
                                 stopP1Timer();
                             }
                         }
 
-                        setP1Timer(moveData.timeControl.player1Time);
-                        setP2Timer(moveData.timeControl.player2Time);
-                        break;
-                    case "gameOver":
-                        const gameOverData = body.data as {
-                            reason: string,
-                            winner: string,
-                        };
 
-                        setGameOverState(gameOverData.reason.toLowerCase())
-                        setWinner(gameOverData.winner);
-                        stopP1Timer();
-                        stopP2Timer();
+                        return [...newMoves];
+                    });
 
-                        setGameOver(true);
-                        break;
-                    case "finarGameOver":
-                        const finarGameOverData = body.data as {
-                            reason: string,
-                            winner: string,
-                            winningMoves: string
-                        };
-
-                        setGameOverState(finarGameOverData.reason.toLowerCase())
-                        setWinner(finarGameOverData.winner);
-                        setWinningMoves(finarGameOverData
-                            .winningMoves
-                            .split(",")
-                            .map(m => parseInt(m)));
-                        stopP1Timer();
-                        stopP2Timer();
-
-                        setTimeout(() => {
-                            setGameOver(true);
-                        }, 2000);
-                        break;
-
-                    case "timeUpdate":
-                        const timeUpdateData = body.data as {
-                            player1Time: number,
-                            player2Time: number
-                        }
-
-                        setP1Timer(timeUpdateData.player1Time);
-                        setP2Timer(timeUpdateData.player2Time);
-                        break;
-                    case "matchNotFound":
-                        navigate("/?error=matchNotFound");
-                        break;
-                    default:
-                        break;
+                    setP1Timer(initialJoinData.timeControl.player1Time);
+                    setP2Timer(initialJoinData.timeControl.player2Time);
                 }
-            }
-        );
-    }, [connected]);
+
+                setPlayer(initialJoinData.player);
+                setOpponent(initialJoinData.opponent);
+                setTurn(initialJoinData.turn);
+                setWins(initialJoinData.wins);
+                setDraws(initialJoinData.draws);
+                setLosses(initialJoinData.losses);
+                setP1Timer(initialJoinData.timeControl.player1Time);
+                setP2Timer(initialJoinData.timeControl.player2Time);
+                setInitialJoinReceived(true);
+                break;
+            case "gameChat":
+                const newMessage = body.data as {
+                    username: string,
+                    content: string
+                };
+
+                setMessages(prevMessages => [
+                    ...prevMessages,
+                    newMessage
+                ]);
+                break;
+            case "move":
+                const moveData = body.data as {
+                    player: string,
+                    n: number,
+                    timeControl: {
+                        player1Time: number,
+                        player2Time: number
+                    }
+                };
+
+                setMoves(prevMoves => {
+                    let nMoves = prevMoves.length + 1;
+
+                    if (nMoves > 1) {
+                        if (nMoves % 2 === 0) {
+                            startP1Timer();
+                            stopP2Timer();
+                        } else if (nMoves % 2 === 1) {
+                            startP2Timer();
+                            stopP1Timer();
+                        }
+                    }
+
+
+                    return [...prevMoves, moveData.n];
+                });
+
+                setP1Timer(moveData.timeControl.player1Time);
+                setP2Timer(moveData.timeControl.player2Time);
+                break;
+            case "gameOver":
+                const gameOverData = body.data as {
+                    reason: string,
+                    winner: string,
+                };
+
+                setGameOverState(gameOverData.reason.toLowerCase())
+                setWinner(gameOverData.winner);
+                stopP1Timer();
+                stopP2Timer();
+
+                setGameOver(true);
+                break;
+            case "finarGameOver":
+                const finarGameOverData = body.data as {
+                    reason: string,
+                    winner: string,
+                    winningMoves: string
+                };
+
+                setGameOverState(finarGameOverData.reason.toLowerCase())
+                setWinner(finarGameOverData.winner);
+                setWinningMoves(finarGameOverData
+                    .winningMoves
+                    .split(",")
+                    .map(m => parseInt(m)));
+                stopP1Timer();
+                stopP2Timer();
+
+                setTimeout(() => {
+                    setGameOver(true);
+                }, 2000);
+                break;
+
+            case "timeUpdate":
+                const timeUpdateData = body.data as {
+                    player1Time: number,
+                    player2Time: number
+                }
+
+                setP1Timer(timeUpdateData.player1Time);
+                setP2Timer(timeUpdateData.player2Time);
+                break;
+            case "matchNotFound":
+                navigate("/?error=matchNotFound");
+                break;
+            default:
+                break;
+        }
+    }, [moves]);
+
+    useEffect(() => {
+        setMessageCallback(messageCallback);
+    }, [connected, moves]);
 
 
     useEffect(() => {
